@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+service TestServer {
+    rpc AttachProcess(stream google.protobuf.Any) returns (stream google.protobuf.Any) {}
+}
+
+message ProcessStartedEvent {
+    string process_id = 1;
+    string address = 2;
+}
+
+message ProcessStoppedEvent {
+}
+
+message NewMessageEvent {
+    string message_id = 1;
+    string recepient = 2;
+    bytes message = 3;
+}
+
+message MessageReceivedEvent {
+    string message_id = 1;
+}
+
+message MessageDataReceivedEvent {
+    string message_id = 1;
+    bytes message = 2;
+}
+
+message MessageProcessedEvent {
+    string message_id = 1;
+}
+
+message NewTimerEvent {
+    string timer_id = 1;
+    string name = 2;
+    float interval = 3;
+}
+
+message TimerFiredEvent {
+    string timer_id = 1;
+}
+
+message TimerProcessedEvent {
+    string timer_id = 1;
+}
+
+message TimerCanceledEvent {
+    string timer_id = 1;
+}
+
+message ReceiveLocalMessageCommand {
+    bytes message = 1;
+}
+
+message ReceiveMessageCommand {
+    string message_id = 1;
+    string sender = 2;
+    bytes message = 3;
+}
+
+message FireTimerCommand {
+    string timer_id = 1;
+}
