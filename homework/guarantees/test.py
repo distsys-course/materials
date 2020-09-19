@@ -275,7 +275,7 @@ def main():
         ExactlyOnceTestCase(
             args.impl_dir, args.debug),
         RandomDropsTestCase(
-            args.impl_dir, args.debug),
+            args.impl_dir, args.debug)
     ]
 
     for i in range(args.n):
