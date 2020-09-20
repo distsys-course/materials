@@ -14,8 +14,8 @@ class StoreProxy(Store):
     def __init__(self, server_addr):
         self._client = RpcClient(server_addr)
 
-    def put(self, key, value, ovwerwrite):
-        return self._client.call('put', key, value, ovwerwrite)
+    def put(self, key, value, overwrite):
+        return self._client.call('put', key, value, overwrite)
 
     def get(self, key):
         return self._client.call('get', key)
