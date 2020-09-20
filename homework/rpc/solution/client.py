@@ -72,7 +72,7 @@ class User:
                     resp = Message('RESULT', result)
                     self._comm.send_local(resp)
                 except Exception as err:
-                    resp = Message('ERROR', err)
+                    resp = Message('ERROR', str(err))
                     self._comm.send_local(resp)
 
     def _parse_arg(self, arg):
