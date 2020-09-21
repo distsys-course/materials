@@ -256,6 +256,52 @@ class BasicTimeoutTestCase(BaseTestCase):
         self.assertIsNone(client_resp)
 
 
+class BasicTimeoutRaceTestCase(BaseTestCase):
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+
+        self.ts.set_message_delay(5)
+        self.ts.set_real_time_mode(True)
+
+        client_req = Message("CALL", "append key 5")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20,1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "ERROR")
+        self.assertEqual(client_resp.body, "Response timeout")
+
+        self.ts.set_message_delay(1)
+        self.ts.step(1)
+
+        client_req = Message("CALL", "put field 2 False")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20,1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, True)
+
+        client_req = Message("CALL", "get field")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20,1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, "2")
+
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20,1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, "2")
+
+
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNone(client_resp)
+
+
 class CheckRepeatedCallsTestCase(BaseTestCase):
     def runTest(self):
         self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
@@ -314,6 +360,8 @@ def main():
         BasicRemoveTestCase(
             args.impl_dir, args.debug),
         BasicTimeoutTestCase(
+            args.impl_dir, args.debug),
+        BasicTimeoutRaceTestCase(
             args.impl_dir, args.debug),
         CheckRepeatedCallsTestCase(
             args.impl_dir, args.debug)
