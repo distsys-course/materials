@@ -233,7 +233,7 @@ class BasicTimeoutTestCase(BaseTestCase):
         self.ts.set_message_delay(5)
         self.ts.set_real_time_mode(True)
 
-        client_req = Message("CALL", "put field 2 True")
+        client_req = Message("CALL", "append field 2")
         self.ts.send_local_message('client', client_req, 1)
         self.ts.steps(20,1)
         client_resp = self.ts.step_until_local_message('client', 1)
@@ -243,6 +243,14 @@ class BasicTimeoutTestCase(BaseTestCase):
 
         self.ts.set_message_delay(1)
         self.ts.step(1)
+
+        client_req = Message("CALL", "put field 2 False")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20,1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, True)
 
         client_req = Message("CALL", "put field 2 False")
         self.ts.send_local_message('client', client_req, 1)
