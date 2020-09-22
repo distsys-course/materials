@@ -12,8 +12,8 @@ from dslib.message import Message
 from dslib.test_server import TestMode, TestServer
 
 
-SERVER_ADDR = 'localhost:9701'
-TEST_SERVER_ADDR = 'localhost:9746'
+SERVER_ADDR = '127.0.0.1:9701'
+TEST_SERVER_ADDR = '127.0.0.1:9746'
 
 
 def run_server(impl_dir, server_addr, ts_addr, debug):
