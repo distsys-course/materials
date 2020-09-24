@@ -248,6 +248,74 @@ class RandomDropsTestCase(BaseTestCase):
         self.assertIsNone(sender_resp)
 
 
+class ExactlyOnceWithOrderTestCase(BaseTestCase):
+
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        num_messages = 10
+        rate = 1
+        self.ts.set_repeat_rate(1, rate)
+        self.ts.set_event_reordering(True)
+        self.ts.set_message_drop_rate(0.5)
+        for i in range(num_messages):
+            sender_req = Message('INFO-4', str(i))
+            self.ts.send_local_message('sender', sender_req, 1)
+        messages = []
+        # New logic
+        current_message = 0
+        while True:
+            sender_resp = self.ts.step_until_local_message('receiver', 1)
+            if sender_resp is None:
+                break
+            messages.append(sender_resp)
+            # New logic
+            self.assertEqual(int(sender_resp.body), current_message)
+            current_message += 1
+        self.assertGreaterEqual(len(messages), num_messages)
+        all_present = [0 for i in range(num_messages)]
+        for i in range(len(messages)):
+            self.assertEqual(messages[i].type, 'INFO-4')
+            all_present[int(messages[i].body)] += 1
+        for el in all_present:
+            self.assertEqual(el, 1)
+
+
+class RandomDropsWithOrderTestCase(BaseTestCase):
+
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        self.ts.set_real_time_mode(False)
+
+        messages =  [(Message('INFO-4', 'some message1'), 'some message1'),
+                     (Message('INFO-4', 'some message2'), 'some message2'),
+                     (Message('INFO-4', 'some message3'), 'some message3'),
+                     (Message('INFO-4', 'some message4'), 'some message4'),
+                     (Message('INFO-4', 'some message5'), 'some message5')]
+
+        # New Logic. send 5 messages
+        for client_req, message_body in messages:
+            # Send 5 identical messages
+            self.ts.send_local_message('sender', client_req)
+            self.ts.send_local_message('sender', client_req)
+            self.ts.send_local_message('sender', client_req)
+            self.ts.send_local_message('sender', client_req)
+            self.ts.send_local_message('sender', client_req)
+            # Drop them and force the retry
+            self.ts.set_message_drop_rate(0.5)
+            # Try to get something from 100 steps, very high probability of success
+            self.ts.steps(100, 1)
+            self.ts.set_message_drop_rate(0)
+
+        for client_req, message_body in messages:
+            sender_resp = self.ts.step_until_local_message('receiver', 1)
+            self.assertIsNotNone(sender_resp, "Receiver response timeout")
+            self.assertEqual(sender_resp.type, 'INFO-4')
+            self.assertEqual(sender_resp.body, message_body)
+        # Should be no other messages
+        sender_resp = self.ts.step_until_local_message('receiver', 1)
+        self.assertIsNone(sender_resp)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(dest='impl_dir', metavar='DIRECTORY',
@@ -275,6 +343,10 @@ def main():
         ExactlyOnceTestCase(
             args.impl_dir, args.debug),
         RandomDropsTestCase(
+            args.impl_dir, args.debug),
+        ExactlyOnceWithOrderTestCase(
+            args.impl_dir, args.debug),
+        RandomDropsWithOrderTestCase(
             args.impl_dir, args.debug)
     ]
 

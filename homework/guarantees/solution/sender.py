@@ -10,34 +10,68 @@ class Sender:
     def __init__(self, name, recv_addr):
         self._comm = Communicator(name)
         self._recv_addr = recv_addr
+        self.msg_queue = []
 
     def run(self):
         while True:
-            msg = self._comm.recv_local()
+            if len(self.msg_queue) > 0:
+                msg = self.msg_queue[0]
+                self.msg_queue = self.msg_queue[1:]
+            else:
+                msg = self._comm.recv_local()
 
             # deliver INFO-1 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all that were recieved but at most once
             if msg.type == 'INFO-1':
-                pass
+                self._comm.send(msg, self._recv_addr)
 
             # deliver INFO-2 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all at least once
             elif msg.type == 'INFO-2':
-                pass
+                while True:
+                    self._comm.send(msg, self._recv_addr)
+                    ans = self._comm.recv(1)
+                    if ans is not None:
+                        if not ans.is_local():
+                            ans._sender = msg._sender
+                            if msg == ans:
+                                break
+                        else:
+                            self.msg_queue.append(ans)
 
             # deliver INFO-3 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all exactly once
             elif msg.type == 'INFO-3':
-                pass
+                while True:
+                    self._comm.send(msg, self._recv_addr)
+                    ans = self._comm.recv(1)
+                    if ans is not None:
+                        if not ans.is_local():
+                            ans._sender = msg._sender
+                            if msg == ans:
+                                break
+                        else:
+                            # add to beginning of msg_queue, to fail INFO-4 invariant
+                            self.msg_queue = [ans] + self.msg_queue
 
             # deliver INFO-4 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all exactly once in the order
             elif msg.type == 'INFO-4':
-                pass
+                # Same as INFO-3, but we add msg to the end of self.msg_queue
+                while True:
+                    self._comm.send(msg, self._recv_addr)
+                    ans = self._comm.recv(1)
+                    if ans is not None:
+                        if not ans.is_local():
+                            ans._sender = msg._sender
+                            if msg == ans:
+                                break
+                        else:
+                            self.msg_queue.append(ans)
 
             else:
                 err = Message('ERROR', 'unknown command: %s' % msg.type)
