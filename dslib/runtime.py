@@ -157,7 +157,8 @@ class Runtime:
     def stop(self):
         if self._testing:
             self._tserver_client.on_process_stopped()
-            #time.sleep(.1)
+            # make sure test server received our goodbye
+            time.sleep(0.01)
         for t in self._timers.values():
             t.cancel()
         self._stop_event.set()

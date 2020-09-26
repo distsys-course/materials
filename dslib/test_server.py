@@ -398,11 +398,16 @@ class TestServer(rpc.TestServerServicer):
                 new_events.append(e)
         self._events = new_events
 
-    def stop(self, wait_processes=True):
+    def stop(self, wait_processes=True, wait_timeout=1):
         if wait_processes:
+            start = time.time()
             while len(self._processes) > 0:
                 time.sleep(.005)
-        else:
+                # lost patience
+                if time.time() - start > wait_timeout:
+                    wait_processes = False
+                    break
+        if not wait_processes:
             for handler in list(self._processes.values()):
                 handler.stop()
         self._server.stop(None)

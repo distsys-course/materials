@@ -245,6 +245,8 @@ class Communicator:
     def _stop(self):
         if self._testing:
             self._tserver_client.on_process_stopped()
+            # make sure test server received our goodbye
+            time.sleep(0.01)
         self._trans.destroy()
 
     # Test Server Command Handlers
