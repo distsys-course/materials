@@ -19,7 +19,7 @@ TEST_SERVER_ADDR = '127.0.0.1:9746'
 def run_receiver(impl_dir, receiver_addr, ts_addr, debug):
     env = os.environ.copy()
     env['TEST_SERVER'] = ts_addr
-    cmd = ['/usr/bin/env', 'python3.7', os.path.join(impl_dir, 'receiver.py'), '-l', receiver_addr]
+    cmd = ['/usr/bin/env', 'python3', os.path.join(impl_dir, 'receiver.py'), '-l', receiver_addr]
     if debug:
         cmd.append('-d')
         out = None
@@ -33,7 +33,7 @@ def run_receiver(impl_dir, receiver_addr, ts_addr, debug):
 def run_sender(impl_dir, receiver_addr, ts_addr, debug):
     env = os.environ.copy()
     env['TEST_SERVER'] = ts_addr
-    cmd = ['/usr/bin/env', 'python3.7', os.path.join(impl_dir, 'sender.py')]
+    cmd = ['/usr/bin/env', 'python3', os.path.join(impl_dir, 'sender.py')]
     if debug:
         cmd.append('-d')
         out = None
