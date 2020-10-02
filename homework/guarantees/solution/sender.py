@@ -11,37 +11,77 @@ class Sender:
         self._comm = Communicator(name)
         self._recv_addr = recv_addr
 
+        self._msg_counter = 0
+        self._id_to_msg = dict()
+        self._msgs = set()
+        self._msg_queue = []
+
     def run(self):
-        while True:
-            msg = self._comm.recv_local()
-
-            # deliver INFO-1 message to receiver user
-            # underlying transport: unreliable with possible repetitions
-            # goal: receiver knows all that were recieved but at most once
-            if msg.type == 'INFO-1':
+        # deliver INFO-1 message to receiver user
+        # underlying transport: unreliable with possible repetitions
+        # goal: receiver knows all that were received but at most once
+        def msg_handler_1(msg):
+            if msg is None:
                 pass
-
-            # deliver INFO-2 message to receiver user
-            # underlying transport: unreliable with possible repetitions
-            # goal: receiver knows all at least once
-            elif msg.type == 'INFO-2':
-                pass
-
-            # deliver INFO-3 message to receiver user
-            # underlying transport: unreliable with possible repetitions
-            # goal: receiver knows all exactly once
-            elif msg.type == 'INFO-3':
-                pass
-
-            # deliver INFO-4 message to receiver user
-            # underlying transport: unreliable with possible repetitions
-            # goal: receiver knows all exactly once in the order
-            elif msg.type == 'INFO-4':
-                pass
-
+            elif msg.is_local():
+                self._comm.send(msg, self._recv_addr)
             else:
-                err = Message('ERROR', 'unknown command: %s' % msg.type)
-                self._comm.send_local(err)
+                pass
+
+        # deliver INFO-2 message to receiver user
+        # underlying transport: unreliable with possible repetitions
+        # goal: receiver knows all at least once
+        def msg_handler_2(msg):
+            if msg is None:
+                pass
+            elif msg.is_local():
+                msg = Message(msg.type, msg.body, self._msg_counter)
+                self._msg_counter += 1
+                self._id_to_msg[msg.headers] = msg
+            else:  # receiving an ACK
+                self._id_to_msg.pop(msg.headers, None)
+
+            for msg in self._id_to_msg.values():
+                self._comm.send(msg, self._recv_addr)
+
+        # deliver INFO-3 message to receiver user
+        # underlying transport: unreliable with possible repetitions
+        # goal: receiver knows all exactly once
+        def msg_handler_3(msg):
+            if msg is None:
+                pass
+            elif msg.is_local():
+                if msg not in self._msgs:
+                    self._msgs.add(msg)
+                    msg = Message(msg.type, msg.body, self._msg_counter)
+                    self._msg_counter += 1
+                    self._id_to_msg[msg.headers] = msg
+            else:  # receiving an ACK
+                self._id_to_msg.pop(msg.headers, None)
+
+            for msg in self._id_to_msg.values():
+                self._comm.send(msg, self._recv_addr)
+
+        # deliver INFO-4 message to receiver user
+        # underlying transport: unreliable with possible repetitions
+        # goal: receiver knows all exactly once in the order
+        def msg_handler_4(msg):
+            msg_handler_3(msg)
+
+        def msg_error_handler(msg):
+            err = Message('ERROR', 'unknown command: %s' % msg.type)
+            self._comm.send_local(err)
+
+        msg = self._comm.recv_local()
+
+        msg_handlers = [msg_handler_1, msg_handler_2, msg_handler_3, msg_handler_4]
+        type = int(msg.type[len('INFO-')]) - 1
+        handler = msg_handlers[type]
+
+        handler(msg)
+        while True:
+            msg = self._comm.recv(1)
+            handler(msg)
 
 
 def main():

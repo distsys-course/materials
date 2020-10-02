@@ -9,6 +9,11 @@ from dslib import Communicator, Message
 class Receiver:
     def __init__(self, name, addr):
         self._comm = Communicator(name, addr)
+        self._msgs = set()
+        self._last_msg = None
+        self._id_to_msg = dict()
+        self._msgs_sent_to_local = 0
+
 
     def run(self):
         while True:
@@ -18,30 +23,43 @@ class Receiver:
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all that were recieved but at most once
             if msg.type == 'INFO-1':
-                pass
+                if msg not in self._msgs:
+                    self._comm.send_local(msg)
+                    self._msgs.add(msg)
 
             # deliver INFO-2 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all at least once
             elif msg.type == 'INFO-2':
-                pass
+                self._comm.send_local(msg)
+                self._comm.send(Message('ACK', None, msg.headers), msg.sender)
 
             # deliver INFO-3 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all exactly once
             elif msg.type == 'INFO-3':
-                pass
+                self._comm.send(Message('ACK', None, msg.headers), msg.sender)
+                if msg not in self._msgs:
+                    self._comm.send_local(msg)
+                    self._msgs.add(msg)
 
             # deliver INFO-4 message to receiver user
             # underlying transport: unreliable with possible repetitions
             # goal: receiver knows all exactly once in the order
             elif msg.type == 'INFO-4':
-                pass
+                self._comm.send(Message('ACK', None, msg.headers), msg.sender)
+                if msg not in self._id_to_msg.values():
+                    self._id_to_msg[msg.headers] = msg
+                    while self._msgs_sent_to_local in self._id_to_msg.keys():
+                        self._comm.send_local(self._id_to_msg[self._msgs_sent_to_local])
+                        self._id_to_msg.pop(self._msgs_sent_to_local)
+                        self._msgs_sent_to_local += 1
 
             # unknown message
             else:
                 err = Message('ERROR', 'unknown message type: %s' % msg.type)
                 self._comm.send(err, msg.sender)
+
 
 def main():
     parser = argparse.ArgumentParser()

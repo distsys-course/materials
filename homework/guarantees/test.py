@@ -19,7 +19,7 @@ TEST_SERVER_ADDR = '127.0.0.1:9746'
 def run_receiver(impl_dir, receiver_addr, ts_addr, debug):
     env = os.environ.copy()
     env['TEST_SERVER'] = ts_addr
-    cmd = ['/usr/bin/env', 'python3', os.path.join(impl_dir, 'receiver.py'), '-l', receiver_addr]
+    cmd = ['/usr/bin/env', 'python3.7', os.path.join(impl_dir, 'receiver.py'), '-l', receiver_addr]
     if debug:
         cmd.append('-d')
         out = None
@@ -33,7 +33,7 @@ def run_receiver(impl_dir, receiver_addr, ts_addr, debug):
 def run_sender(impl_dir, receiver_addr, ts_addr, debug):
     env = os.environ.copy()
     env['TEST_SERVER'] = ts_addr
-    cmd = ['/usr/bin/env', 'python3', os.path.join(impl_dir, 'sender.py')]
+    cmd = ['/usr/bin/env', 'python3.7', os.path.join(impl_dir, 'sender.py')]
     if debug:
         cmd.append('-d')
         out = None
@@ -248,6 +248,82 @@ class RandomDropsTestCase(BaseTestCase):
         self.assertIsNone(sender_resp)
 
 
+class ExactlyOnceInOrderTestCase(BaseTestCase):
+
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        num_messages = 10
+        rate = 1
+        self.ts.set_repeat_rate(1, rate)
+        self.ts.set_event_reordering(True)
+        self.ts.set_message_drop_rate(0.5)
+        for i in range(num_messages):
+            sender_req = Message('INFO-4', str(i))
+            self.ts.send_local_message('sender', sender_req, 1)
+        messages = []
+        while True:
+            sender_resp = self.ts.step_until_local_message('receiver', 1)
+            if sender_resp is None:
+                break
+            messages.append(sender_resp)
+        self.assertEqual(len(messages), num_messages)
+        for i, msg in enumerate(messages):
+            self.assertEqual('INFO-4', msg.type)
+            self.assertEqual(str(i), msg.body)
+
+
+class ExactlyOnceInOrderWithRepetitionsTestCase(BaseTestCase):
+
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        num_messages = 10
+        rate = 4  # Changed from 1 to 4.
+        self.ts.set_repeat_rate(1, rate)
+        self.ts.set_event_reordering(True)
+        self.ts.set_message_drop_rate(0.5)
+        for i in range(num_messages):
+            sender_req = Message('INFO-4', str(i))
+            for _ in range(2):  # A second msg from TestServer is added.
+                self.ts.send_local_message('sender', sender_req, 1)
+        messages = []
+        while True:
+            sender_resp = self.ts.step_until_local_message('receiver', 1)
+            if sender_resp is None:
+                break
+            messages.append(sender_resp)
+        self.assertEqual(len(messages), num_messages)
+        for i, msg in enumerate(messages):
+            self.assertEqual('INFO-4', msg.type)
+            self.assertEqual(str(i), msg.body)
+
+
+class ExactlyOnceInOrderRandomDropsTestCase(BaseTestCase):
+
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        self.ts.set_real_time_mode(False)
+
+        client_req = Message('INFO-4', 'some message')
+        # Send 5 identical messages
+        self.ts.send_local_message('sender', client_req)
+        self.ts.send_local_message('sender', client_req)
+        self.ts.send_local_message('sender', client_req)
+        self.ts.send_local_message('sender', client_req)
+        self.ts.send_local_message('sender', client_req)
+        # Drop them and force the retry
+        self.ts.set_message_drop_rate(0.5)
+        # Try to get something from 100 steps, very high probability of success
+        self.ts.steps(100, 1)
+        self.ts.set_message_drop_rate(0)
+        sender_resp = self.ts.step_until_local_message('receiver', 1)
+        self.assertIsNotNone(sender_resp, "Receiver response timeout")
+        self.assertEqual(sender_resp.type, 'INFO-4')
+        self.assertEqual(sender_resp.body, 'some message')
+        # Should be no other messages
+        sender_resp = self.ts.step_until_local_message('receiver', 1)
+        self.assertIsNone(sender_resp)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(dest='impl_dir', metavar='DIRECTORY',
@@ -275,7 +351,13 @@ def main():
         ExactlyOnceTestCase(
             args.impl_dir, args.debug),
         RandomDropsTestCase(
-            args.impl_dir, args.debug)
+            args.impl_dir, args.debug),
+        ExactlyOnceInOrderTestCase(
+            args.impl_dir, args.debug),
+        ExactlyOnceInOrderWithRepetitionsTestCase(
+            args.impl_dir, args.debug),
+        ExactlyOnceInOrderRandomDropsTestCase(
+            args.impl_dir, args.debug),
     ]
 
     for i in range(args.n):
