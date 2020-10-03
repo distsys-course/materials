@@ -329,6 +329,40 @@ class CheckRepeatedCallsTestCase(BaseTestCase):
         self.assertIsNone(client_resp)
 
 
+class CheckAtMostOnceGuaranteeTestCase(BaseTestCase):
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        self.ts.set_repeat_rate(1, 5)
+
+        client_req = Message("CALL", "put field 2 False")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.step_until_no_events(1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, True)
+
+        client_req = Message("CALL", "append field 2")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.step_until_no_events(1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, "22")
+
+        for _ in range(20):
+            client_req = Message("CALL", "get field")
+            self.ts.send_local_message('client', client_req, 1)
+            self.ts.step_until_no_events(1)
+            client_resp = self.ts.step_until_local_message('client', 1)
+            self.assertIsNotNone(client_resp)
+            self.assertEqual(client_resp.type, "RESULT")
+            self.assertEqual(client_resp.body, "22")
+
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNone(client_resp)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(dest='impl_dir', metavar='DIRECTORY',
@@ -352,6 +386,8 @@ def main():
         BasicTimeoutTestCase(
             args.impl_dir, args.debug),
         CheckRepeatedCallsTestCase(
+            args.impl_dir, args.debug),
+        CheckAtMostOnceGuaranteeTestCase(
             args.impl_dir, args.debug),
         RemoveTimeoutTestCase(
             args.impl_dir, args.debug)

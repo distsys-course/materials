@@ -48,6 +48,7 @@ class RpcServer:
     def __init__(self, addr, service):
         self._comm = Communicator('server', addr)
         self._service = service
+        self._executed_commands = {}
 
     def run(self):
         """Main server loop where it handles incoming RPC requests"""
@@ -55,11 +56,16 @@ class RpcServer:
         while True:
             msg = self._comm.recv()
             args = json.loads(msg.body)
-            try:
-                res = getattr(self._service, msg.type)(*args)
-                response = Message(message_type='RESULT', body=json.dumps(res), headers=msg.headers)
-            except Exception as e:
-                response = Message(message_type='ERROR', body=str(e), headers=msg.headers)
+            msg_id = msg.headers['id']
+            if msg_id in self._executed_commands:
+                response = self._executed_commands[msg_id]
+            else:
+                try:
+                    res = getattr(self._service, msg.type)(*args)
+                    response = Message(message_type='RESULT', body=json.dumps(res), headers=msg.headers)
+                except Exception as e:
+                    response = Message(message_type='ERROR', body=str(e), headers=msg.headers)
+            self._executed_commands[msg_id] = response
             self._comm.send(response, msg.sender)
 
 
