@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import json
 
 from dslib import Communicator, Message
 
@@ -45,14 +46,21 @@ class RpcServer:
     """This is server-side RPC implementation"""
 
     def __init__(self, addr, service):
-        # Your implementation
-        pass
+        self._comm = Communicator('server', addr)
+        self._service = service
 
     def run(self):
         """Main server loop where it handles incoming RPC requests"""
+        while True:
+            msg = self._comm.recv()
+            args = json.loads(msg.body)
+            try:
+                res = getattr(self._service, msg._type)(*args)
+                response = Message(message_type='RESULT', body=json.dumps(res), headers=msg._headers)
+            except Exception as e:
+                response = Message(message_type='ERROR', body=str(e), headers=msg._headers)
+            self._comm.send(response, msg._sender)
 
-        # Your implementation
-        pass
 
 
 def main():

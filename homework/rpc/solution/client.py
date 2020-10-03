@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import json
 
 from dslib import Communicator, Message
 
@@ -32,14 +33,27 @@ class RpcClient:
 
     def __init__(self, server_addr):
         self._comm = Communicator('client')
-        # Your implementation
-        pass
+        self._server_addr = server_addr
+        self._message_id = 0
 
     def call(self, func, *args):
         """Call function on RPC server and return result"""
-        
-        # Your implementation
-        pass
+
+        def is_idempotent(f):
+            return f in ['get', 'put', 'remove']
+
+        msg_body = json.dumps(args)
+        self._message_id += 1
+        msg = Message(message_type=func, body=msg_body, headers={'id': self._message_id})
+        while True:
+            self._comm.send(msg, self._server_addr)
+            response = self._comm.recv(1)
+            if response is not None and response._headers['id'] == msg._headers['id']:
+                if response._type == 'ERROR':
+                    raise Exception(response._body)
+                return json.loads(response._body)
+            if not is_idempotent(func):
+                raise Exception('Response timeout')
 
 
 class User:
@@ -49,7 +63,7 @@ class User:
         self._proxy = proxy
         # reuse communicator from proxy
         self._comm = proxy._client._comm
-    
+
     def run(self):
         while True:
             msg = self._comm.recv()
@@ -86,7 +100,7 @@ class User:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', dest='server_addr', metavar='host:port', 
+    parser.add_argument('-s', dest='server_addr', metavar='host:port',
                         help='server address', default='127.0.0.1:9701')
     parser.add_argument('-d', dest='log_level', action='store_const', const=logging.DEBUG,
                         help='print debugging info', default=logging.WARNING)
