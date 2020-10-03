@@ -51,15 +51,16 @@ class RpcServer:
 
     def run(self):
         """Main server loop where it handles incoming RPC requests"""
+
         while True:
             msg = self._comm.recv()
             args = json.loads(msg.body)
             try:
-                res = getattr(self._service, msg._type)(*args)
-                response = Message(message_type='RESULT', body=json.dumps(res), headers=msg._headers)
+                res = getattr(self._service, msg.type)(*args)
+                response = Message(message_type='RESULT', body=json.dumps(res), headers=msg.headers)
             except Exception as e:
-                response = Message(message_type='ERROR', body=str(e), headers=msg._headers)
-            self._comm.send(response, msg._sender)
+                response = Message(message_type='ERROR', body=str(e), headers=msg.headers)
+            self._comm.send(response, msg.sender)
 
 
 

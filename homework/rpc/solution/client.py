@@ -39,8 +39,8 @@ class RpcClient:
     def call(self, func, *args):
         """Call function on RPC server and return result"""
 
-        def is_idempotent(f):
-            return f in ['get', 'put', 'remove']
+        def is_idempotent(func_name):
+            return func_name in ['get', 'put', 'remove']
 
         msg_body = json.dumps(args)
         self._message_id += 1
@@ -48,10 +48,12 @@ class RpcClient:
         while True:
             self._comm.send(msg, self._server_addr)
             response = self._comm.recv(1)
-            if response is not None and response._headers['id'] == msg._headers['id']:
-                if response._type == 'ERROR':
-                    raise Exception(response._body)
-                return json.loads(response._body)
+            if response is not None and response.headers['id'] == msg.headers['id']:
+                if response.type == 'ERROR':
+                    raise Exception(response.body)
+                if response.type != 'RESULT':
+                    raise Exception('Unknown message type')
+                return json.loads(response.body)
             if not is_idempotent(func):
                 raise Exception('Response timeout')
 

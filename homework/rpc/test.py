@@ -1,4 +1,3 @@
-
 import argparse
 import logging
 import os
@@ -9,7 +8,6 @@ import unittest
 
 from dslib.message import Message
 from dslib.test_server import TestMode, TestServer
-
 
 SERVER_ADDR = '127.0.0.1:9701'
 TEST_SERVER_ADDR = '127.0.0.1:9746'
@@ -57,7 +55,6 @@ class BaseTestCase(unittest.TestCase):
         self.ts.start()
         self.server = run_server(self.impl_dir, SERVER_ADDR, TEST_SERVER_ADDR, self.debug)
         self.user = run_client(self.impl_dir, SERVER_ADDR, TEST_SERVER_ADDR, self.debug)
-        
 
     def tearDown(self):
         self.server.terminate()
@@ -68,7 +65,7 @@ class BaseTestCase(unittest.TestCase):
 
 
 class BasicPutTestCase(BaseTestCase):
-    
+
     def runTest(self):
         self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
         self.ts.step(1)
@@ -141,7 +138,7 @@ class BasicGetTestCase(BaseTestCase):
 class BasicAppendTestCase(BaseTestCase):
     def runTest(self):
         self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
-        
+
         client_req = Message("CALL", "put field 2 False")
         self.ts.send_local_message('client', client_req, 1)
         self.ts.step_until_no_events(1)
@@ -181,7 +178,7 @@ class BasicAppendTestCase(BaseTestCase):
 class BasicRemoveTestCase(BaseTestCase):
     def runTest(self):
         self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
-        
+
         client_req = Message("CALL", "remove field")
         self.ts.send_local_message('client', client_req, 1)
         self.ts.step_until_no_events(1)
@@ -235,7 +232,7 @@ class BasicTimeoutTestCase(BaseTestCase):
 
         client_req = Message("CALL", "append field 2")
         self.ts.send_local_message('client', client_req, 1)
-        self.ts.steps(20,1)
+        self.ts.steps(20, 1)
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNotNone(client_resp)
         self.assertEqual(client_resp.type, "ERROR")
@@ -246,7 +243,7 @@ class BasicTimeoutTestCase(BaseTestCase):
 
         client_req = Message("CALL", "put field 2 False")
         self.ts.send_local_message('client', client_req, 1)
-        self.ts.steps(20,1)
+        self.ts.steps(20, 1)
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNotNone(client_resp)
         self.assertEqual(client_resp.type, "RESULT")
@@ -254,12 +251,44 @@ class BasicTimeoutTestCase(BaseTestCase):
 
         client_req = Message("CALL", "put field 2 False")
         self.ts.send_local_message('client', client_req, 1)
-        self.ts.steps(20,1)
+        self.ts.steps(20, 1)
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNotNone(client_resp)
         self.assertEqual(client_resp.type, "RESULT")
         self.assertEqual(client_resp.body, False)
 
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNone(client_resp)
+
+
+class RemoveTimeoutTestCase(BaseTestCase):
+    def runTest(self):
+        self.assertTrue(self.ts.wait_processes(2, 1), "Startup timeout")
+        self.ts.step(1)
+
+        client_req = Message("CALL", "put field 2 False")
+        self.ts.send_local_message('client', client_req)
+        self.ts.step_until_no_events(1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, True)
+
+        client_req = Message("CALL", "remove field")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20, 1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "RESULT")
+        self.assertEqual(client_resp.body, "2")
+
+        client_req = Message("CALL", "remove field")
+        self.ts.send_local_message('client', client_req, 1)
+        self.ts.steps(20, 1)
+        client_resp = self.ts.step_until_local_message('client', 1)
+        self.assertIsNotNone(client_resp)
+        self.assertEqual(client_resp.type, "ERROR")
+        self.assertEqual(client_resp.body, "Key field not found")
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNone(client_resp)
 
@@ -272,7 +301,7 @@ class CheckRepeatedCallsTestCase(BaseTestCase):
 
         client_req = Message("CALL", "get field")
         self.ts.send_local_message('client', client_req, 1)
-        self.ts.steps(150,2)
+        self.ts.steps(150, 2)
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNotNone(client_resp)
         self.assertEqual(client_resp.type, "ERROR")
@@ -290,12 +319,11 @@ class CheckRepeatedCallsTestCase(BaseTestCase):
         self.ts.set_message_drop_rate(0.4)
         client_req = Message("CALL", "get field")
         self.ts.send_local_message('client', client_req, 1)
-        self.ts.steps(150,2)
+        self.ts.steps(150, 2)
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNotNone(client_resp)
         self.assertEqual(client_resp.type, "RESULT")
         self.assertEqual(client_resp.body, "2")
-
 
         client_resp = self.ts.step_until_local_message('client', 1)
         self.assertIsNone(client_resp)
@@ -324,6 +352,8 @@ def main():
         BasicTimeoutTestCase(
             args.impl_dir, args.debug),
         CheckRepeatedCallsTestCase(
+            args.impl_dir, args.debug),
+        RemoveTimeoutTestCase(
             args.impl_dir, args.debug)
     ]
 
