@@ -1,0 +1,2 @@
+pytest==6.0.2
+requests==2.24.0

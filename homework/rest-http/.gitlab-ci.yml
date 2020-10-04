@@ -1,0 +1,35 @@
+image: docker:latest
+
+variables:
+  DOCKER_DRIVER: overlay
+
+services:
+- docker:dind
+
+before_script:
+- apk add --no-cache docker-compose
+
+
+build:
+    stage: build
+    script:
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - cd src/
+        - docker pull $CI_REGISTRY_IMAGE/server:latest || true
+        - docker pull $CI_REGISTRY_IMAGE/pytest:latest || true
+        - docker-compose build
+        - docker tag hse-http-hw-server:latest $CI_REGISTRY_IMAGE/server:latest
+        - docker tag hse-http-hw-pytest:latest $CI_REGISTRY_IMAGE/pytest:latest
+        - docker push $CI_REGISTRY_IMAGE/server:latest
+        - docker push $CI_REGISTRY_IMAGE/pytest:latest
+
+pytest:
+    stage: test
+    script:
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - cd src/
+        - docker pull $CI_REGISTRY_IMAGE/server:latest
+        - docker pull $CI_REGISTRY_IMAGE/pytest:latest
+        - docker-compose up -d server
+        - docker-compose run pytest
+        - docker-compose down

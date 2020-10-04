@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  server:
+      build:
+          context: server/
+      image: hse-http-hw-server:latest
+  pytest:
+      build:
+          context: tests/
+      image: hse-http-hw-pytest:latest
+      depends_on:
+        - server
