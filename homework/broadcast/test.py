@@ -119,8 +119,15 @@ class UniformReliableTestCase(BaseTestCase):
         # send message from Bob
         self.ts.send_local_message(self.peers[1], Message('SEND', 'Hello'))
 
-        # deliver locally
-        self.ts.step(1)
+        # if Bob has not delivered the message yet, make a step
+        # (so he will receive his own message and possibly deliver it)
+        delivered = 0
+        if self.ts.wait_local_message(self.peers[1], 0) is None:
+            self.ts.step(1)
+            if self.ts.wait_local_message(self.peers[1], 0) is not None:
+                delivered = 1
+        else:
+            delivered = 1
 
         # crash Bob
         self.ts.crash_process(self.peers[1])
@@ -128,10 +135,25 @@ class UniformReliableTestCase(BaseTestCase):
         # complete execution
         self.ts.step_until_no_events(3)
 
-        # make sure no peer delivered the message
+        # check agreement property
+        crashed = ['Bob']
+        correct = ['Alice', 'Carl', 'Dan', 'Eve']
+        crashed_delivered = delivered
+        correct_delivered = 0
         for peer in self.peers:
-            msg = self.ts.wait_local_message(peer, 0)
-            self.assertIsNone(msg, "Peer delivered some message")
+            if peer not in crashed:
+                msg = self.ts.wait_local_message(peer, 0)
+                if msg is not None:
+                    correct_delivered += 1
+        passed = False
+        if crashed_delivered == 0 and correct_delivered == 0:
+            passed = True
+        if crashed_delivered == 0 and correct_delivered == len(correct):
+            passed = True
+        if crashed_delivered > 0 and correct_delivered == len(correct):
+            passed = True
+        self.assertTrue(passed, 
+            "Agreement property is not satisfied: correct - " + str(correct_delivered) + "/4, crashed - " + str(crashed_delivered) + "/1")
 
 
 class OrderedTestCase(BaseTestCase):
