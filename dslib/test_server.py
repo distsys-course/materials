@@ -126,6 +126,10 @@ class TestServer(rpc.TestServerServicer):
                 pb.FireTimerCommand(
                     timer_id=timer_id))
 
+        def crash(self):
+            self._send_command(
+                pb.CrashCommand())
+
         def stop(self):
             self._command_queue.put(None)
             self._context.cancel()
@@ -197,7 +201,6 @@ class TestServer(rpc.TestServerServicer):
         self._addr = addr
         self._test_mode = os.getenv('TEST_MODE', TestMode.CONTROL)
         self._processes = {}
-        self._crashed_processes = set()
         self._lookup = {}
         self._rev_lookup = {}
 
@@ -213,6 +216,11 @@ class TestServer(rpc.TestServerServicer):
         self._message_drop_rate = 0
         self._repeat_rate = 0
         self._repeat_event_times = 0
+
+        self._disabled_links = set()
+        self._drop_incoming = set()
+        self._drop_outgoing = set()
+        self._crashed_processes = set()
 
         self._message_count = 0
 
@@ -307,7 +315,12 @@ class TestServer(rpc.TestServerServicer):
             if message.recepient in self._crashed_processes:
                 logging.debug("discarded message %s to crashed process %s", message.id, message.recepient)
                 return True
-            if random.uniform(0, 1) > self._message_drop_rate:
+            if (
+                message.sender not in self._drop_outgoing
+                and message.recepient not in self._drop_incoming
+                and (message.sender, message.recepient) not in self._disabled_links
+                and random.uniform(0, 1) > self._message_drop_rate
+            ):
                 if event._is_repeatable and random.uniform(0, 1) < self._repeat_rate:
                     for i in range(self._repeat_event_times):
                         logging.debug("repeating message %s", message.id)
@@ -343,7 +356,8 @@ class TestServer(rpc.TestServerServicer):
     def steps(self, count, timeout):
         for _ in range(0, count):
             if not self.step(timeout):
-                break
+                return False
+        return True
 
     def step_until_local_message(self, process_id, timeout):
         deadline = time.time() + timeout
@@ -385,9 +399,50 @@ class TestServer(rpc.TestServerServicer):
         except queue.Empty:
             return None
 
+    def disconnect_process(self, process_id):
+        self._drop_incoming.add(process_id)
+        self._drop_outgoing.add(process_id)
+
+    def connect_process(self, process_id):
+        self._drop_incoming.remove(process_id)
+        self._drop_outgoing.remove(process_id)
+
+    def drop_incoming(self, process_id):
+        self._drop_incoming.add(process_id)
+
+    def pass_incoming(self, process_id):
+        self._drop_incoming.remove(process_id)
+
+    def drop_outgoing(self, process_id):
+        self._drop_outgoing.add(process_id)
+
+    def pass_outgoing(self, process_id):
+        self._drop_outgoing.remove(process_id)
+
+    def disable_link(self, proc_from, proc_to):
+        self._disabled_links.add((proc_from, proc_to))
+
+    def enable_link(self, proc_from, proc_to):
+        self._disabled_links.remove((proc_from, proc_to))
+
+    def partition_network(self, group1, group2):
+        for proc1 in group1:
+            for proc2 in group2:
+                self.disable_link(proc1, proc2)
+                self.disable_link(proc2, proc1)
+
+    def reset_network(self):
+        self._disabled_links.clear()
+        self._drop_incoming.clear()
+        self._drop_outgoing.clear()
+
     def crash_process(self, process_id):
-        logging.debug("[%s] crashed", process_id)
+        handler = self._processes.pop(process_id)
+        handler.crash()
+        time.sleep(.1)
+        handler.stop()
         self._crashed_processes.add(process_id)
+        logging.debug("[%s] crashed", process_id)
         new_events = []
         for e in self._events:
             if e.type == Event.MESSAGE and (e.sender == process_id or e.recepient == process_id):
@@ -401,7 +456,7 @@ class TestServer(rpc.TestServerServicer):
     def stop(self, wait_processes=True, wait_timeout=1):
         if wait_processes:
             start = time.time()
-            while len(self._processes) > 0:
+            while len(self._processes) > 0:                
                 time.sleep(.005)
                 # lost patience
                 if time.time() - start > wait_timeout:
@@ -416,6 +471,8 @@ class TestServer(rpc.TestServerServicer):
 
     def _on_process_started(self, process_id, address, handler):
         logging.debug("[%s] started on %s", process_id, address)
+        if process_id in self._crashed_processes:
+            self._crashed_processes.remove(process_id)
         self._processes[process_id] = handler
         self._lookup[process_id] = address
         self._rev_lookup[address] = process_id
@@ -465,7 +522,7 @@ class TestServer(rpc.TestServerServicer):
     def _on_new_timer(self, process_id, timer_id, name, interval):
         if self._test_mode == TestMode.CONTROL:
             # set timer intervals to 1 during testing
-            interval = 1
+            # interval = 1
             event = TimerEvent(process_id, timer_id, name, interval)
             self._events.append(event)
         logging.debug("[%s] set timer %s: %s, %.1fs", process_id, timer_id, name, interval)

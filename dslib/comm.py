@@ -83,6 +83,9 @@ class Communicator:
                         command = pb.FireTimerCommand()
                         c.Unpack(command)
                         self._runtime._handle_fire_timer(command.timer_id)
+
+                    if c.Is(pb.CrashCommand.DESCRIPTOR):
+                        self._runtime._handle_crash()
             except grpc.RpcError as e:
                 logging.debug("grpc error %s", e)
                 self._events.put(None)
@@ -225,9 +228,8 @@ class Communicator:
             self._inbox.put(message)
 
     def _receive_local_messages(self):
-        while True:
-            line = sys.stdin.readline().strip()
-            parts = line.split(" ", 1)
+        for line in sys.stdin:
+            parts = line.strip().split(" ", 1)
             message_type = parts[0]
             if len(parts) == 2:
                 body = parts[1]
@@ -261,3 +263,6 @@ class Communicator:
 
     def _handle_fire_timer(self, timer_id):
         self._inbox.put(Message('TIMER', timer_id))
+
+    def _handle_crash(self):
+        os._exit(1)

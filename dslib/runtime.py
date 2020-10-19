@@ -110,6 +110,9 @@ class Runtime:
                         command = pb.FireTimerCommand()
                         c.Unpack(command)
                         self._runtime._handle_fire_timer(command.timer_id)
+
+                    if c.Is(pb.CrashCommand.DESCRIPTOR):
+                        self._runtime._handle_crash()
             except grpc.RpcError:
                 self._events.put(None)
 
@@ -215,9 +218,8 @@ class Runtime:
             self._inbox.put(message)
 
     def _receive_local_messages(self):
-        while True:
-            line = sys.stdin.readline().strip()
-            parts = line.split(" ", 1)
+        for line in sys.stdin:
+            parts = line.strip().split(" ", 1)
             message_type = parts[0]
             if len(parts) == 2:
                 body = parts[1]
@@ -304,6 +306,9 @@ class Runtime:
         timer_name = self._pending_timers.pop(timer_id)
         if timer_name is not None:
             self._on_timer(timer_id, timer_name)
+
+    def _handle_crash(self):
+        os._exit(1)
 
     # Misc
 

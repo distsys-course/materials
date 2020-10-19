@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11test_server.proto\x1a\x19google/protobuf/any.proto\":\n\x13ProcessStartedEvent\x12\x12\n\nprocess_id\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x15\n\x13ProcessStoppedEvent\"I\n\x0fNewMessageEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x11\n\trecepient\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"*\n\x14MessageReceivedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\"?\n\x18MessageDataReceivedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\x0c\"+\n\x15MessageProcessedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\"A\n\rNewTimerEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x10\n\x08interval\x18\x03 \x01(\x02\"#\n\x0fTimerFiredEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"\'\n\x13TimerProcessedEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"&\n\x12TimerCanceledEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"-\n\x1aReceiveLocalMessageCommand\x12\x0f\n\x07message\x18\x01 \x01(\x0c\"L\n\x15ReceiveMessageCommand\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x0e\n\x06sender\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"$\n\x10\x46ireTimerCommand\x12\x10\n\x08timer_id\x18\x01 \x01(\t2O\n\nTestServer\x12\x41\n\rAttachProcess\x12\x14.google.protobuf.Any\x1a\x14.google.protobuf.Any\"\x00(\x01\x30\x01\x62\x06proto3'
+  serialized_pb=b'\n\x11test_server.proto\x1a\x19google/protobuf/any.proto\":\n\x13ProcessStartedEvent\x12\x12\n\nprocess_id\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x15\n\x13ProcessStoppedEvent\"I\n\x0fNewMessageEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x11\n\trecepient\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"*\n\x14MessageReceivedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\"?\n\x18MessageDataReceivedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\x0c\"+\n\x15MessageProcessedEvent\x12\x12\n\nmessage_id\x18\x01 \x01(\t\"A\n\rNewTimerEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x10\n\x08interval\x18\x03 \x01(\x02\"#\n\x0fTimerFiredEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"\'\n\x13TimerProcessedEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"&\n\x12TimerCanceledEvent\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"-\n\x1aReceiveLocalMessageCommand\x12\x0f\n\x07message\x18\x01 \x01(\x0c\"L\n\x15ReceiveMessageCommand\x12\x12\n\nmessage_id\x18\x01 \x01(\t\x12\x0e\n\x06sender\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"$\n\x10\x46ireTimerCommand\x12\x10\n\x08timer_id\x18\x01 \x01(\t\"\x0e\n\x0c\x43rashCommand2O\n\nTestServer\x12\x41\n\rAttachProcess\x12\x14.google.protobuf.Any\x1a\x14.google.protobuf.Any\"\x00(\x01\x30\x01\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
 
@@ -491,6 +491,31 @@ _FIRETIMERCOMMAND = _descriptor.Descriptor(
   serialized_end=706,
 )
 
+
+_CRASHCOMMAND = _descriptor.Descriptor(
+  name='CrashCommand',
+  full_name='CrashCommand',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=708,
+  serialized_end=722,
+)
+
 DESCRIPTOR.message_types_by_name['ProcessStartedEvent'] = _PROCESSSTARTEDEVENT
 DESCRIPTOR.message_types_by_name['ProcessStoppedEvent'] = _PROCESSSTOPPEDEVENT
 DESCRIPTOR.message_types_by_name['NewMessageEvent'] = _NEWMESSAGEEVENT
@@ -504,6 +529,7 @@ DESCRIPTOR.message_types_by_name['TimerCanceledEvent'] = _TIMERCANCELEDEVENT
 DESCRIPTOR.message_types_by_name['ReceiveLocalMessageCommand'] = _RECEIVELOCALMESSAGECOMMAND
 DESCRIPTOR.message_types_by_name['ReceiveMessageCommand'] = _RECEIVEMESSAGECOMMAND
 DESCRIPTOR.message_types_by_name['FireTimerCommand'] = _FIRETIMERCOMMAND
+DESCRIPTOR.message_types_by_name['CrashCommand'] = _CRASHCOMMAND
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ProcessStartedEvent = _reflection.GeneratedProtocolMessageType('ProcessStartedEvent', (_message.Message,), {
@@ -597,6 +623,13 @@ FireTimerCommand = _reflection.GeneratedProtocolMessageType('FireTimerCommand', 
   })
 _sym_db.RegisterMessage(FireTimerCommand)
 
+CrashCommand = _reflection.GeneratedProtocolMessageType('CrashCommand', (_message.Message,), {
+  'DESCRIPTOR' : _CRASHCOMMAND,
+  '__module__' : 'test_server_pb2'
+  # @@protoc_insertion_point(class_scope:CrashCommand)
+  })
+_sym_db.RegisterMessage(CrashCommand)
+
 
 
 _TESTSERVER = _descriptor.ServiceDescriptor(
@@ -606,8 +639,8 @@ _TESTSERVER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=708,
-  serialized_end=787,
+  serialized_start=724,
+  serialized_end=803,
   methods=[
   _descriptor.MethodDescriptor(
     name='AttachProcess',

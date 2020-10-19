@@ -54,6 +54,7 @@ class TestServer(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -62,4 +63,4 @@ class TestServer(object):
             google_dot_protobuf_dot_any__pb2.Any.SerializeToString,
             google_dot_protobuf_dot_any__pb2.Any.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -64,3 +64,6 @@ message ReceiveMessageCommand {
 message FireTimerCommand {
     string timer_id = 1;
 }
+
+message CrashCommand {
+}
