@@ -75,12 +75,14 @@ class BaseTestCase(unittest.TestCase):
         for i in range(len(string.ascii_lowercase)):
             weights.append(random.randint(0, i^2))
         random.shuffle(weights)
-        self.keys = list(''.join(random.choices(string.ascii_lowercase, weights=weights, k=8)) for i in range(self.keys_count))
+        while True:
+            self.keys = list(''.join(random.choices(string.ascii_lowercase, weights=weights, k=8)) for i in range(self.keys_count))
+            if len(self.keys) == len(set(self.keys)):
+                break
         self.values = {
             self.keys[i] : ''.join(random.choices(string.ascii_lowercase, k=8)) for i in range(self.keys_count)
         }
         random.shuffle(self.keys)
-        assert(len(self.keys) == len(set(self.keys)))
 
         seed_addr = self.ts.get_process_addr(group[0])
         for node in group:
@@ -142,7 +144,7 @@ class BaseTestCase(unittest.TestCase):
         if expect_keys is None:
             expect_keys = len(self.keys)
         synced_nodes = set()
-        record_count = 0
+        counts = [0] * len(group)
 
         start = time.time()
         while time.time() - start < timeout:
@@ -155,19 +157,22 @@ class BaseTestCase(unittest.TestCase):
                     self.assertEqual(msg.type, 'MEMBERS')
                     if len(msg.body) == len(group) and set(msg.body) == set(group):
                         synced_nodes.add(node)
-            record_count = 0
-            for node in group:
+            counts_changed = False
+            for i, node in enumerate(group):
                 self.ts.send_local_message(node, Message('COUNT_RECORDS'))
                 msg = self.ts.step_until_local_message(node, 1)
                 self.assertEqual(msg.type, 'COUNT_RECORDS_RESP')
-                record_count += int(msg.body)
-            if len(synced_nodes) == len(group) and record_count == expect_keys:
+                count = int(msg.body)
+                if count != counts[i]:
+                    counts_changed = True
+                counts[i] = count
+            if len(synced_nodes) == len(group) and sum(counts) == expect_keys and not counts_changed:
                 break
             if not step_status:
                 break
 
         self.assertEqual(synced_nodes, set(group), "Members lists are not stabilized")
-        self.assertEqual(record_count, expect_keys, "Keys are not stabilized")
+        self.assertEqual(sum(counts), expect_keys, "Keys are not stabilized")
 
 
 class BasicTestCase(BaseTestCase):
