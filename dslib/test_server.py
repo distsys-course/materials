@@ -316,8 +316,8 @@ class TestServer(rpc.TestServerServicer):
                 logging.debug("discarded message %s to crashed process %s", message.id, message.recepient)
                 return True
             if (
-                message.sender not in self._drop_outgoing
-                and message.recepient not in self._drop_incoming
+                (message.sender not in self._drop_outgoing or message.sender == message.recepient)
+                and (message.recepient not in self._drop_incoming or message.sender == message.recepient)
                 and (message.sender, message.recepient) not in self._disabled_links
                 and random.uniform(0, 1) > self._message_drop_rate
             ):

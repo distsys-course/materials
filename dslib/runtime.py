@@ -223,6 +223,8 @@ class Runtime:
             message_type = parts[0]
             if len(parts) == 2:
                 body = parts[1]
+                if body.startswith('{'):
+                    body = json.loads(body)
             else:
                 body = None
             message = Message(message_type, body, sender='local')
