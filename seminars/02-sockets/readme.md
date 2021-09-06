@@ -404,7 +404,7 @@ $ ./protoc -I=$HOME/protobuf/src/ --cpp_out=$HOME/distsys-course/seminars/02/pro
 должны будете добавить их в вашу систему сборки, а также `libprotobuf.a`,
 который был скомпилирован на build стадии.
 
-`protoc` умеет комплировать под все языки, просто замените `cpp_out` на,
+`protoc` умеет компилировать под все языки, просто замените `cpp_out` на,
 например, `python_out`.
 
 ## API
@@ -417,7 +417,7 @@ $ ./protoc -I=$HOME/protobuf/src/ --cpp_out=$HOME/distsys-course/seminars/02/pro
   void clear_email();
   // Получить email()
   const std::string& email() const;
-  // Выставить соотвествующий email.
+  // Выставить соответствующий email.
   void set_email(const std::string& value);
   void set_email(std::string&& value);
   void set_email(const char* value);
@@ -545,7 +545,7 @@ void RunServer() {
 }
 ```
 
-Сихронный клиент тоже не сильно сложнее устроен
+Синхронный клиент тоже не сильно сложнее устроен
 
 ```cpp
 class GreeterClient {
