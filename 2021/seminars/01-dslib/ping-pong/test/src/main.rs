@@ -1,6 +1,9 @@
 use std::env;
 use assertables::assume;
 use clap::{Arg, App, value_t};
+use env_logger::Builder;
+use log::LevelFilter;
+use std::io::Write;
 use sugars::{refcell, rc};
 
 use dslib::node::LocalEventType;
@@ -18,6 +21,19 @@ struct TestConfig<'a> {
     drop_rate: f64
 }
 
+fn init_logger(level: LevelFilter) {
+    Builder::new()
+        .filter(None, level)
+        .format(|buf, record| {
+            writeln!(
+                buf,
+                "{}",
+                record.args()
+            )
+        })
+        .init();
+}
+
 fn build_system(config: &TestConfig) -> System<JsonMessage> {
     let mut sys = System::with_seed(config.seed);
     let client = config.client_f.build("client", ("client", "server"), config.seed);
@@ -25,6 +41,13 @@ fn build_system(config: &TestConfig) -> System<JsonMessage> {
     let server = config.server_f.build("server", ("server",), config.seed);
     sys.add_node(rc!(refcell!(server)));
     return sys;
+}
+
+fn get_local_messages(sys: &System<JsonMessage>, node: &str) -> Vec<JsonMessage> {
+    sys.get_local_events(node).into_iter()
+        .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
+        .map(|m| m.msg.unwrap())
+        .collect::<Vec<_>>()
 }
 
 // TESTS -------------------------------------------------------------------------------------------
@@ -43,10 +66,7 @@ fn test_result(config: &TestConfig) -> TestResult {
     let ping = JsonMessage::new("PING", r#"{"value": "Hello!"}"#);
     sys.send_local(ping, "client");
     sys.step_until_no_events();
-    let messages = sys.get_local_events("client").into_iter()
-           .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-           .map(|m| m.msg.unwrap())
-           .collect::<Vec<_>>();
+    let messages = get_local_messages(&sys, "client");
     assume!(messages.len() > 0, "No messages returned by client!")?;
     assume!(messages.len() == 1, "More than one message???")?;
     for m in messages {
@@ -63,16 +83,11 @@ fn test_10results(config: &TestConfig) -> TestResult {
         let ping = JsonMessage::new("PING", r#"{"value": "Hello!"}"#);
         sys.send_local(ping, "client");
         sys.step_until_no_events();
-        let messages = sys.get_local_events("client").into_iter()
-                .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-                .map(|m| m.msg.unwrap())
-                .collect::<Vec<_>>();
+        let messages = get_local_messages(&sys, "client");
         assume!(messages.len() > 0, "No messages returned by client!")?;
         assume!(messages.len() == 1 + i, "Wrong number of messages!")?;
-        for m in messages {
-            assume!(m.tip == "PONG", "⏰⏰Wrong message type!")?;
-            assume!(m.data == r#"{"value": "Hello!"}"#, "Wrong message data!")?;
-        }
+        assume!(messages[i].tip == "PONG", "⏰⏰Wrong message type!")?;
+        assume!(messages[i].data == r#"{"value": "Hello!"}"#, "Wrong message data!")?;
     }
     Ok(true)
 }
@@ -85,10 +100,7 @@ fn test_drop_ping(config: &TestConfig) -> TestResult {
     sys.steps(10);
     sys.set_drop_rate(0.0);
     sys.step_until_no_events();
-    let messages = sys.get_local_events("client").into_iter()
-           .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-           .map(|m| m.msg.unwrap())
-           .collect::<Vec<_>>();
+    let messages = get_local_messages(&sys, "client");
     assume!(messages.len() > 0, "No messages returned by client!")?;
     assume!(messages.len() == 1, "More than one message???")?;
     for m in messages {
@@ -107,10 +119,7 @@ fn test_drop_pong(config: &TestConfig) -> TestResult {
     sys.steps(10);
     sys.set_drop_rate(0.0);
     sys.step_until_no_events();
-    let messages = sys.get_local_events("client").into_iter()
-           .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-           .map(|m| m.msg.unwrap())
-           .collect::<Vec<_>>();
+    let messages = get_local_messages(&sys, "client");
     assume!(messages.len() > 0, "No messages returned by client!")?;
     assume!(messages.len() == 1, "More than one message???")?;
     for m in messages {
@@ -128,10 +137,7 @@ fn test_drop_ping2(config: &TestConfig) -> TestResult {
     sys.steps(10);
     sys.pass_outgoing("client");
     sys.step_until_no_events();
-    let messages = sys.get_local_events("client").into_iter()
-           .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-           .map(|m| m.msg.unwrap())
-           .collect::<Vec<_>>();
+    let messages = get_local_messages(&sys, "client");
     assume!(messages.len() > 0, "No messages returned by client!")?;
     assume!(messages.len() == 1, "More than one message???")?;
     for m in messages {
@@ -149,10 +155,7 @@ fn test_drop_pong2(config: &TestConfig) -> TestResult {
     sys.steps(10);
     sys.pass_outgoing("server");
     sys.step_until_no_events();
-    let messages = sys.get_local_events("client").into_iter()
-           .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-           .map(|m| m.msg.unwrap())
-           .collect::<Vec<_>>();
+    let messages = get_local_messages(&sys, "client");
     assume!(messages.len() > 0, "No messages returned by client!")?;
     assume!(messages.len() == 1, "More than one message???")?;
     for m in messages {
@@ -170,16 +173,12 @@ fn test_10results_unique(config: &TestConfig) -> TestResult {
         let data = format!(r#"{{"value": "Hello{}!"}}"#, i);
         let ping = JsonMessage::new("PING", &data);
         sys.send_local(ping, "client");
-        let messages = sys.get_local_events("client").into_iter()
-                .filter(|m| matches!(m.tip, LocalEventType::LocalMessageSend))
-                .map(|m| m.msg.unwrap())
-                .collect::<Vec<_>>();
+        sys.step_until_local_message("client")?;
+        let messages = get_local_messages(&sys, "client");
         assume!(messages.len() > 0, "No messages returned by client!")?;
         assume!(messages.len() == 1 + i, "Wrong number of messages!")?;
-        for m in messages {
-            assume!(m.tip == "PONG", "⏰⏰Wrong message type!")?;
-            assume!(m.data == data, "Wrong message data!")?;
-        }
+        assume!(messages[i].tip == "PONG", "⏰⏰Wrong message type!")?;
+        assume!(messages[i].data == data, "Wrong message data!")?;
     }
     Ok(true)
 }
@@ -218,6 +217,7 @@ fn main() {
     let seed = value_t!(matches.value_of("seed"), u64).unwrap();
     let dslib_path = matches.value_of("dslib_path").unwrap();
     let test = matches.value_of("test");
+    init_logger(LevelFilter::Trace);
 
     env::set_var("PYTHONPATH", format!("{}/python", dslib_path));
     let client_f = PyNodeFactory::new(impl_path, "PingClient");
