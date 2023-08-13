@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.idea/
+
+# Rust
+debug/
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
