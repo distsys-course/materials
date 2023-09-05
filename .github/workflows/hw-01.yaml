@@ -1,0 +1,26 @@
+name: HW 1
+
+on:
+  push:
+    branches: [ '2023' ]
+  pull_request:
+    branches: [ '2023' ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+           workspaces: homework/01-guarantees/tests
+           cache-on-failure: true
+      - name: Run tests
+        working-directory: homework/01-guarantees/tests
+        run: cargo run --release -- -m 100 -c -o
