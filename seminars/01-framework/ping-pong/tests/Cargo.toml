@@ -1,0 +1,14 @@
+[package]
+name = "ping-pong"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+
+[dependencies]
+dslab-mp = { git = "https://github.com/osukhoroslov/dslab.git" }
+dslab-mp-python = { git = "https://github.com/osukhoroslov/dslab.git" }
+assertables = "3.2.2"
+clap = { version = "3.1.17", features = ["cargo", "derive"] }
+env_logger = "0.9.0"
+log = "0.4.14"
+sugars = "3.0.0"
