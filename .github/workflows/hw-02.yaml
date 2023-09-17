@@ -1,0 +1,40 @@
+name: HW 2
+
+on:
+  push:
+    branches: [ '2023' ]
+  pull_request:
+    branches: [ '2023', 'master']
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test HW2
+    if: |
+      github.repository != 'osukhoroslov/distsys-course-hse' &&
+      (
+        contains(github.event.pull_request.labels.*.name, 'hw/02-practice-grpc') || 
+        github.event_name != 'pull_request'
+      )
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: homework/02-practice-grpc
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build docker images
+        run: docker compose build server client1 tests
+      - name: Run containers and tests
+        run: |
+          docker compose up -d server client1 client2
+          docker compose run tests
+      - name: Show server logs
+        run: docker compose logs --no-log-prefix server
+      - name: Show client1 logs
+        run: docker compose logs --no-log-prefix client1
+      - name: Show client2 logs
+        run: docker compose logs --no-log-prefix client2
+      - name: Stop Docker Compose
+        run: docker compose down

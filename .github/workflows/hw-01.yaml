@@ -4,15 +4,20 @@ on:
   push:
     branches: [ '2023' ]
   pull_request:
-    branches: [ '2023' ]
+    branches: [ '2023', 'master']
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   test:
-    name: Test
-    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    name: Test HW1
+    if: |
+      github.repository != 'osukhoroslov/distsys-course-hse' &&
+      (
+        contains(github.event.pull_request.labels.*.name, 'hw/01-guarantees') || 
+        github.event_name != 'pull_request'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

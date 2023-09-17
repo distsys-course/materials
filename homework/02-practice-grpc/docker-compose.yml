@@ -1,0 +1,46 @@
+services:
+  server:
+    image: grpc-solution-server
+    build:
+      context: ./messenger
+      dockerfile: server.dockerfile
+    environment:
+      MESSENGER_SERVER_PORT: 51075
+    ports:
+      - 51075:51075
+
+  client1:
+    image: grpc-solution-client
+    build:
+      context: ./messenger
+      dockerfile: client.dockerfile
+    environment:
+      MESSENGER_SERVER_ADDR: server:51075
+      MESSENGER_HTTP_PORT: 8080
+    ports:
+      - 8080:8080
+
+  client2:
+    image: grpc-solution-client
+    build:
+      context: ./messenger
+      dockerfile: client.dockerfile
+    environment:
+      MESSENGER_SERVER_ADDR: server:51075
+      MESSENGER_HTTP_PORT: 8080
+    ports:
+      - 8081:8080
+
+  tests:
+    image: grpc-solution-tests
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    environment:
+      MESSENGER_TEST_CLIENT1_ADDR: client1:8080
+      MESSENGER_TEST_CLIENT2_ADDR: client2:8080
+      MESSENGER_TEST_SERVER_ADDR: server:51075
+    depends_on:
+      - server
+      - client1
+      - client2

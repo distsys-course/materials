@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package mes_grpc;
+
+// TODO: Add messages and service
+// service must contain the following rpc methods: SendMessage and ReadMessages
