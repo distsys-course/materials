@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  nginx:
+    image: nginx
+    volumes:
+      - "./rootfs/etc/nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./rootfs/etc/nginx/conf.d:/etc/nginx/conf.d"
+      - "./rootfs/var/www:/var/www"
+    ports:
+      - "8080:80"
