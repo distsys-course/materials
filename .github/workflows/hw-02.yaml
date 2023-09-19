@@ -14,10 +14,7 @@ jobs:
     name: Test HW2
     if: |
       github.repository != 'osukhoroslov/distsys-course-hse' &&
-      (
-        contains(github.event.pull_request.labels.*.name, 'hw/02-practice-grpc') || 
-        github.event_name != 'pull_request'
-      )
+      ( contains(github.event.pull_request.labels.*.name, 'hw/02-practice-grpc') || github.event_name == 'push' )
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,10 +28,14 @@ jobs:
           docker compose up -d server client1 client2
           docker compose run tests
       - name: Show server logs
+        if: always()
         run: docker compose logs --no-log-prefix server
       - name: Show client1 logs
+        if: always()
         run: docker compose logs --no-log-prefix client1
       - name: Show client2 logs
+        if: always()
         run: docker compose logs --no-log-prefix client2
       - name: Stop Docker Compose
+        if: always()
         run: docker compose down

@@ -14,10 +14,7 @@ jobs:
     name: Test HW1
     if: |
       github.repository != 'osukhoroslov/distsys-course-hse' &&
-      (
-        contains(github.event.pull_request.labels.*.name, 'hw/01-guarantees') || 
-        github.event_name != 'pull_request'
-      )
+      ( contains(github.event.pull_request.labels.*.name, 'hw/01-guarantees') || github.event_name == 'push' )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
