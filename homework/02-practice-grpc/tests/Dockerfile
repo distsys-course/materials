@@ -9,4 +9,4 @@ RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.7/
 COPY messenger/proto/messenger.proto messenger/proto/messenger.proto
 COPY tests/*.py tests/
 
-ENTRYPOINT pytest -vs tests/
+ENTRYPOINT ["pytest", "-vs", "tests/"]
