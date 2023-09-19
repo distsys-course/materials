@@ -60,7 +60,9 @@ sequenceDiagram
 
     U ->>+ C: [http] POST /sendMessage {author, text}
 
-    C ->> S: [grpc call] SendMessage {author, text, sendTime}
+    C ->>+ S: [grpc call] SendMessage {author, text}
+
+    S ->>- C: [grpc response] SendMessage response with {sendTime}
 
     C ->>- U: [http response] body with {sendTime}
 
