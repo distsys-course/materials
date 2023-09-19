@@ -34,6 +34,7 @@ git remote add upstream git@github.com:osukhoroslov/distsys-course-hse.git
 
 ```
 git fetch upstream
+git checkout 2023
 git rebase upstream/2023
 ```
 
