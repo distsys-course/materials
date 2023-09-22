@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  server1:
+    build:
+      context: ./kittens
+    environment:
+      APP_VERSION: 'v1'
+      BIND_PORT: 5001
+    ports:
+      - 9001:5001
+
+  server2:
+    build:
+      context: ./kittens
+    environment:
+      APP_VERSION: 'v2'
+      BIND_PORT: 5002
+    ports:
+      - 9002:5002
+
+  proxy:
+    image: nginx
+    ports:
+      - 8080:80
+      - 8081:10000
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/static
+    restart: unless-stopped
