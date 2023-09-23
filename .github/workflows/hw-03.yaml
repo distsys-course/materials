@@ -1,0 +1,31 @@
+name: HW 3
+
+on:
+  push:
+    branches: ["2023"]
+    paths: ["homework/03-http/**"]
+  pull_request:
+    branches: ["2023", "master"]
+    paths: ["homework/03-http/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test HW3
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: homework/03-http
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate Go is installed
+        run: go version
+      - name: Build server Docker image
+        run: docker build ./server -t hw3img
+      - name: Run tests
+        run: |
+          cd tests
+          USE_DOCKER=true go test
