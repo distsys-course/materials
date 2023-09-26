@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
-	mes_grpc "server/proto"
+	mes_grpc "github.com/distsys-course/2021/02-practice-grpc/grpc"
 	"sync"
 	"time"
 
@@ -16,7 +16,7 @@ import (
 )
 
 type Server struct {
-	mes_grpc.UnimplementedMessengerServiceServer
+	mes_grpc.UnimplementedMessengerServerServer
 	Mutex sync.Mutex
 	MessageQueue []*mes_grpc.Message
 }
@@ -43,7 +43,7 @@ func (s *Server) SendMessage(ctx context.Context, in *mes_grpc.SendRequest) (*me
 	}, nil
 }
 
-func (s *Server) ReadMessages(req *mes_grpc.ReadRequest, rec mes_grpc.MessengerService_ReadMessagesServer) error {
+func (s *Server) ReadMessages(req *mes_grpc.ReadRequest, rec mes_grpc.MessengerServer_ReadMessagesServer) error {
 	cur_timestamp := time.Now()
 	s.Mutex.Lock()
 	defer s.Mutex.Unlock()
@@ -59,11 +59,13 @@ func (s *Server) ReadMessages(req *mes_grpc.ReadRequest, rec mes_grpc.MessengerS
 }
 
 func main() {
-	addr := os.Getenv("SERVER_ADDR")
-	if addr == "" {
+	port := os.Getenv("MESSENGER_SERVER_PORT")
+	addr := ""
+	if port == "" {
 		addr = "0.0.0.0:51075"
-
 		fmt.Println("Missing SERVER_ADDR, using default value: " + addr)
+	} else {
+		addr = "0.0.0.0:" + port
 	}
 	// Creating a TCP socket.
 	lis, err := net.Listen("tcp", addr)
@@ -75,7 +77,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	messengerService := NewServer()
-	mes_grpc.RegisterMessengerServiceServer(grpcServer, messengerService)
+	mes_grpc.RegisterMessengerServerServer(grpcServer, messengerService)
 	
 	if err = grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

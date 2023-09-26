@@ -24,7 +24,7 @@ message SendResponse {
 message ReadRequest {
 }
 
-service MessengerService {
+service MessengerServer {
     rpc SendMessage(SendRequest) returns (SendResponse);
     rpc ReadMessages(ReadRequest) returns (stream Message);
 }

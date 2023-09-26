@@ -3,7 +3,7 @@ services:
     image: grpc-solution-server
     build:
       context: ./messenger
-      dockerfile: server.dockerfile
+      dockerfile: server/server.dockerfile
     environment:
       MESSENGER_SERVER_PORT: 51075
     ports:
@@ -13,7 +13,7 @@ services:
     image: grpc-solution-client
     build:
       context: ./messenger
-      dockerfile: client.dockerfile
+      dockerfile: client/client.dockerfile
     environment:
       MESSENGER_SERVER_ADDR: server:51075
       MESSENGER_HTTP_PORT: 8080
@@ -24,7 +24,7 @@ services:
     image: grpc-solution-client
     build:
       context: ./messenger
-      dockerfile: client.dockerfile
+      dockerfile: client/client.dockerfile
     environment:
       MESSENGER_SERVER_ADDR: server:51075
       MESSENGER_HTTP_PORT: 8080

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	mes_grpc "github.com/distsys-course/2021/2-practice-grpc/grpc"
+	mes_grpc "../proto"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/jsonpb"
 	"google.golang.org/grpc"
@@ -22,12 +22,11 @@ type ChatMessage struct {
 type MessengerClient struct {
 	pendingMessages []ChatMessage
 	pendingMutex    sync.Mutex
-	grpcClient      mes_grpc.gRPCMessengerClient
+	grpcClient      YourMessengerServerClient
 }
 
 func NewMessengerClient(serverAddr string) *MessengerClient {
-	ans := MessengerClient([]ChatMessage, sync.Mutex(), )
-
+	// TODO
 }
 
 func (c *MessengerClient) ReadMessages() {
