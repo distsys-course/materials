@@ -22,15 +22,26 @@ type ChatMessage struct {
 type MessengerClient struct {
 	pendingMessages []ChatMessage
 	pendingMutex    sync.Mutex
-	grpcClient      YourMessengerServerClient
+	grpcClient      mes_grpc.messengerServerClient
 }
 
 func NewMessengerClient(serverAddr string) *MessengerClient {
-	// TODO
+	cc := grpc.NewClientConn(serverAddr, grpc.NewClientStream(context.Background(), ))
+	return &MessengerClient{
+		pendingMessages: []ChatMessage{},
+        pendingMutex:    sync.Mutex{},
+		grpcClient:      mes_grpc.NewMessengerServerClient(cc),
+	}
 }
 
-func (c *MessengerClient) ReadMessages() {
-	// TODO: implement messages consumer here
+func (c *MessengerClient) SendMessage(req mes_grpc.SendRequest) {
+	c.pendingMutex.Lock()
+    c.pendingMessages = append(c.pendingMessages, ChatMessage{
+        Author:   req.Author,
+        Text:     req.Text,
+        SendTime: time.Now(),
+    })
+    c.pendingMutex.Unlock()
 }
 
 func (c *MessengerClient) GetPending() (messages []ChatMessage) {

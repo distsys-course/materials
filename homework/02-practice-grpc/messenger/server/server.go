@@ -6,10 +6,9 @@ import (
 	"log"
 	"net"
 	"os"
-	mes_grpc "github.com/distsys-course/2021/02-practice-grpc/grpc"
+	mes_grpc "../proto"
 	"sync"
 	"time"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -63,7 +62,7 @@ func main() {
 	addr := ""
 	if port == "" {
 		addr = "0.0.0.0:51075"
-		fmt.Println("Missing SERVER_ADDR, using default value: " + addr)
+		fmt.Println("Missing MESSENGER_SERVER_PORT, using default value: 51075")
 	} else {
 		addr = "0.0.0.0:" + port
 	}
