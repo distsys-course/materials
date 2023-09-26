@@ -47,7 +47,7 @@ func (s *Server) ReadMessages(req *mes_grpc.ReadRequest, rec mes_grpc.MessengerS
 	s.Mutex.Lock()
 	defer s.Mutex.Unlock()
 	for mes := range s.MessageQueue {
-		if cur_timestamp.After(s.MessageQueue[mes].SendTime.AsTime()) {
+		if cur_timestamp.Before(s.MessageQueue[mes].SendTime.AsTime()) {
 			continue
 		}
 		if err := rec.Send(s.MessageQueue[mes]); err != nil {
