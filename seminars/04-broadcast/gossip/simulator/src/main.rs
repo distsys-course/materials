@@ -1,9 +1,6 @@
 use std::env;
-use std::io::Write;
 
 use clap::Parser;
-use env_logger::Builder;
-use log::LevelFilter;
 use serde::Serialize;
 use sugars::boxed;
 
@@ -25,6 +22,10 @@ struct Args {
     #[clap(long, short, default_value = "10")]
     nodes: u32,
 
+    /// Network drop rate.
+    #[clap(long, short, default_value = "0")]
+    drop_rate: f64,
+
     /// Fan-out (how many peers to contact on each round).
     #[clap(long, short, default_value = "1")]
     fanout: u32,
@@ -40,27 +41,27 @@ struct Args {
     /// Random seed.
     #[clap(long, short, default_value = "123")]
     seed: u64,
-
-    /// Print execution trace.
-    #[clap(long, short)]
-    debug: bool,
 }
 
 // MAIN ----------------------------------------------------------------------------------------------------------------
 
 fn main() {
     let args = Args::parse();
-    if args.debug {
-        init_logger(LevelFilter::Debug);
-    }
     env::set_var("PYTHONPATH", "../");
     env::set_var("PYTHONHASHSEED", args.seed.to_string());
     let proc_factory = PyProcessFactory::new(&args.impl_path, "Peer");
     println!("Nodes: {}", args.nodes);
     println!("Fanout: {}", args.fanout);
+    println!("Network drop rate: {}", args.drop_rate);
     println!("Implementation: {}", args.impl_path);
 
-    let mut sys = build_system(proc_factory, args.nodes, args.fanout, args.seed);
+    let mut sys = build_system(
+        proc_factory,
+        args.nodes,
+        args.drop_rate,
+        args.fanout,
+        args.seed,
+    );
     sys.send_local_message(
         "0",
         Message::json(
@@ -91,6 +92,17 @@ fn main() {
             break;
         }
     }
+    let sent_counts: Vec<u64> = sys
+        .process_names()
+        .iter()
+        .map(|p| sys.sent_message_count(&p))
+        .collect();
+    println!(
+        "\nMessages sent by each node: max={}, min={}, mean={:.2}",
+        sent_counts.iter().max().unwrap(),
+        sent_counts.iter().min().unwrap(),
+        sent_counts.iter().sum::<u64>() as f64 / sent_counts.len() as f64
+    )
 }
 
 // UTILS ---------------------------------------------------------------------------------------------------------------
@@ -103,16 +115,16 @@ struct BroadcastMessage<'a> {
     info: &'a str,
 }
 
-fn init_logger(level: LevelFilter) {
-    Builder::new()
-        .filter(Some("dslab_mp"), level)
-        .format(|buf, record| writeln!(buf, "{}", record.args()))
-        .init();
-}
-
-fn build_system(proc_factory: PyProcessFactory, nodes: u32, fanout: u32, seed: u64) -> System {
+fn build_system(
+    proc_factory: PyProcessFactory,
+    nodes: u32,
+    drop_rate: f64,
+    fanout: u32,
+    seed: u64,
+) -> System {
     let mut sys = System::new(seed);
     sys.network().set_delay(0.1);
+    sys.network().set_drop_rate(drop_rate);
     for proc_id in 0..nodes {
         // process and node on which it runs have the same name
         let name = format!("{}", &proc_id);
