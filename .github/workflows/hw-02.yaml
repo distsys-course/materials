@@ -2,19 +2,19 @@ name: HW 2
 
 on:
   push:
-    branches: [ '2023' ]
+    branches: ["2023"]
+    paths: ["homework/02-practice-grpc/**"]
   pull_request:
-    branches: [ '2023', 'master']
+    branches: ["2023", "master"]
+    paths: ["homework/02-practice-grpc/**"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   test:
-    name: Test HW2
-    if: |
-      github.repository != 'osukhoroslov/distsys-course-hse' &&
-      ( contains(github.event.pull_request.labels.*.name, 'hw/02-practice-grpc') || github.event_name == 'push' )
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
     runs-on: ubuntu-latest
     defaults:
       run:

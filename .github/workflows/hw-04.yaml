@@ -1,12 +1,12 @@
-name: HW 1
+name: HW 4
 
 on:
   push:
     branches: ["2023"]
-    paths: ["homework/01-guarantees/**"]
+    paths: ["homework/04-broadcast/**"]
   pull_request:
     branches: ["2023", "master"]
-    paths: ["homework/01-guarantees/**"]
+    paths: ["homework/04-broadcast/**"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,8 +21,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-           workspaces: homework/01-guarantees/tests
+           workspaces: homework/04-broadcast/tests
            cache-on-failure: true
       - name: Run tests
-        working-directory: homework/01-guarantees/tests
-        run: cargo run --release -- -m 100 -c -o
+        working-directory: homework/04-broadcast/tests
+        run: cargo run --release -- -m 100

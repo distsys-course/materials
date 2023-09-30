@@ -13,7 +13,7 @@ env:
 
 jobs:
   test:
-    name: Test HW3
+    name: Test
     if: github.repository != 'osukhoroslov/distsys-course-hse'
     runs-on: ubuntu-latest
     defaults:
