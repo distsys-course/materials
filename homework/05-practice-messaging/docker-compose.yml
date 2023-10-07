@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+    rabbitmq:
+        image: rabbitmq:3-management
+        hostname: "rabbitmq"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+    web:
+        build: 
+            context: server
+        volumes:
+            # do not remove these volumes
+            - /var/run/docker.sock:/tmp/docker.sock
+            - data-volume:/data
+        expose:
+            - 5000
+    worker:
+        build: 
+            context: worker
+        volumes:
+            # do not remove these volumes
+            - /var/run/docker.sock:/tmp/docker.sock
+            - data-volume:/data
+    pytest:
+        build: tests/
+        volumes:
+            # do not remove these volumes
+            - /var/run/docker.sock:/tmp/docker.sock
+            - data-volume:/data
+
+volumes:
+    data-volume: 

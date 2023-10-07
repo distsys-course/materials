@@ -1,0 +1,31 @@
+name: HW 5
+
+on:
+  push:
+    branches: ["2023"]
+    paths: ["homework/05-practice-messaging/**"]
+  pull_request:
+    branches: ["2023", "master"]
+    paths: ["homework/05-practice-messaging/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: homework/05-practice-messaging
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build images
+        run: docker compose build
+      - name: Run tests
+        run: |
+          docker compose up -d --force-recreate --scale worker=2 rabbitmq web worker
+          docker compose run --rm pytest
+      - name: Stop
+        run: docker compose down
