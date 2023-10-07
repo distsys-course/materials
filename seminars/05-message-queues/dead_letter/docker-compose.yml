@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+    rabbitmq:
+        image: rabbitmq:3-management
+        hostname: "rabbitmq"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+    producer:
+        build: 
+            context: producer
+    consumer:
+        build: 
+            context: consumer
+    dead_letter_consumer:
+        build: 
+            context: dead_letter_consumer
