@@ -1,0 +1,5 @@
+pytest==6.2.3
+pytest-order==1.1.0
+requests==2.25.1
+requests-unixsocket==0.3.0
+loguru==0.5.3
