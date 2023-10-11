@@ -3,6 +3,8 @@ name: HW 5
 on:
   push:
     branches: ["2023"]
+    paths-ignore:
+      - '**/tests/**'
     paths: ["homework/05-practice-messaging/**"]
   pull_request:
     branches: ["2023", "master"]
