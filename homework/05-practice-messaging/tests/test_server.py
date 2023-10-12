@@ -17,11 +17,11 @@ def get_containers():
     mq = None
     workers = []
     for item in response.json():
-        if item['Image'] == '05-practice-messaging-worker':
+        if 'worker' in item['Image']:
             workers.append(item['Id'])
-        if item['Image'] == '05-practice-messaging-web':
+        elif 'web' in item['Image']:
             server = item['Id']
-        if item['Image'] == 'rabbitmq:3-management':
+        elif 'rabbitmq' in item['Image']:
             mq = item['Id']
     return server, mq, workers
 
