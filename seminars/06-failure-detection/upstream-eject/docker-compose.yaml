@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  server1:
+    build:
+      context: ./kittens
+    environment:
+      APP_VERSION: 'v1'
+      BIND_PORT: 5001
+    ports:
+      - 9001:5001
+
+  server2:
+    build:
+      context: ./kittens
+    environment:
+      APP_VERSION: 'v2'
+      BIND_PORT: 5002
+      FAILURE_PROBABILITY: '0.8'
+    ports:
+      - 9002:5002
+
+  envoy:
+    image: docker.io/envoyproxy/envoy:v1.27-latest
+    environment:
+      loglevel: debug
+    volumes:
+     - ./envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - 8080:8080
