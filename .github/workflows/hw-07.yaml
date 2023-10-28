@@ -1,0 +1,28 @@
+name: HW 7
+
+on:
+  push:
+    branches: ["2023"]
+    paths: ["homework/07-kv-sharding/**"]
+  pull_request:
+    branches: ["2023", "master"]
+    paths: ["homework/07-kv-sharding/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+           workspaces: homework/07-kv-sharding/tests
+           cache-on-failure: true
+      - name: Run tests
+        working-directory: homework/07-kv-sharding/tests
+        run: cargo run --release
