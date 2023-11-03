@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  kv1:
+    build:
+      context: ./storage
+    ports:
+      - 5000:5000
+    command: -n kv1
+  
+  kv2:
+    build:
+      context: ./storage
+    ports:
+      - 5001:5000
+    command: -n kv2
+
+  kv3:
+    build:
+      context: ./storage
+    ports:
+      - 5002:5000
+    command: -n kv3
+  
+  proxy:
+    build:
+      context: ./proxy
+    ports:
+      - 5003:5000
+    command: -c compose_config.yml
+  

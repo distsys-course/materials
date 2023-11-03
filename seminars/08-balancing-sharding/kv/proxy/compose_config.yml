@@ -1,0 +1,8 @@
+mode: sharding
+nodes:
+  - name: node1
+    url: http://kv1:5000
+  - name: node2
+    url: http://kv2:5000
+  - name: node3
+    url: http://kv3:5000

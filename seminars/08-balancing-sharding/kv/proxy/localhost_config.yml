@@ -1,0 +1,8 @@
+mode: sharding
+nodes:
+  - name: node1
+    url: http://localhost:5000
+  - name: node2
+    url: http://localhost:5001
+  - name: node3
+    url: http://localhost:5002
