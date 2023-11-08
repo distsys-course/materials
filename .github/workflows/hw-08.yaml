@@ -1,0 +1,28 @@
+name: HW 8
+
+on:
+  push:
+    branches: ["2023"]
+    paths: ["homework/08-kv-replication/**"]
+  pull_request:
+    branches: ["2023", "master"]
+    paths: ["homework/08-kv-replication/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+           workspaces: homework/08-kv-replication/tests
+           cache-on-failure: true
+      - name: Run tests
+        working-directory: homework/08-kv-replication/tests
+        run: cargo run --release
