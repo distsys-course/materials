@@ -1,0 +1,62 @@
+version: '3'
+services:
+  consul-server-1:
+    image: consul:1.15
+    command: |
+      consul agent -ui -server -bootstrap-expect=3 -data-dir=/consul/data -client=0.0.0.0
+    volumes:
+      - ./consul-data-1:/consul/data
+    ports:
+      - 8500:8500
+      - 8600:8600/udp
+
+  consul-server-2:
+    image: consul:1.15
+    command: |
+      consul agent -server -retry-join=consul-server-1 -data-dir=/consul/data -client=0.0.0.0
+    volumes:
+      - ./consul-data-2:/consul/data
+    ports:
+      - 8501:8500
+      - 8601:8600/udp
+    depends_on:
+      - consul-server-1
+
+  consul-server-3:
+    image: consul:1.15
+    command: |
+      consul agent -server -retry-join=consul-server-1 -data-dir=/consul/data -client=0.0.0.0
+    volumes:
+      - ./consul-data-3:/consul/data
+    ports:
+      - 8502:8500
+      - 8602:8600/udp
+    depends_on:
+      - consul-server-1
+  
+  app-1:
+    build:
+      context: ./app
+    ports:
+      - 5001:5000
+    environment:
+      CONSUL_HOST: consul-server-1
+      MY_HOST: app-1
+  
+  app-2:
+    build:
+      context: ./app
+    ports:
+      - 5002:5000
+    environment:
+      CONSUL_HOST: consul-server-2
+      MY_HOST: app-2
+  
+  app-3:
+    build:
+      context: ./app
+    ports:
+      - 5003:5000
+    environment:
+      CONSUL_HOST: consul-server-3
+      MY_HOST: app-3
