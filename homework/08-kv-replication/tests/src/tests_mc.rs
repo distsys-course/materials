@@ -55,6 +55,7 @@ pub fn test_mc_basic(config: &TestConfig) -> TestResult {
 
     // stage 2: put key to the first replica
     let value = random_string(8, &mut rand);
+    let sys = build_system(config);
     mc = ModelChecker::new(&sys);
 
     let stage2_strategy = mc_query_strategy(&replicas[0], McQuery::Put(key.clone(), value.clone()));
@@ -249,6 +250,7 @@ pub fn test_mc_sloppy_quorum_hinted_handoff(config: &TestConfig) -> TestResult {
 
     // stage 2: put key from the first replica (network partition still exists)
     let value = random_string(8, &mut rand);
+    sys = build_system(config);
     mc = ModelChecker::new(&sys);
 
     let stage2_strategy = mc_query_strategy(&replicas[0], McQuery::Put(key.clone(), value.clone()));
