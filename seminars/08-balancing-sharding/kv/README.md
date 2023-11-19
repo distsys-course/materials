@@ -36,6 +36,7 @@ python3 storage/main.py -n 'kv1' -p 5000
 python3 storage/main.py -n 'kv2' -p 5001
 python3 storage/main.py -n 'kv3' -p 5002
 
+# для данного примера проверьте, что mode: sharding
 python3 proxy/main.py -c proxy/localhost_config.yml -p 5003
 
 open 'http://localhost:5003/state'

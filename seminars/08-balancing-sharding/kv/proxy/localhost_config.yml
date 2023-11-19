@@ -1,4 +1,4 @@
-mode: sharding
+mode: replication-raid3
 nodes:
   - name: node1
     url: http://localhost:5000
