@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "kv/proto";
+
+service Example {
+	rpc Query(QueryRequest) returns (QueryResponse) {}
+}
+
+message QueryRequest {
+	string query = 1;
+}
+
+message QueryResponse {
+    string response = 1;
+}

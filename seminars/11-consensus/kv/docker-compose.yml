@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  raft1:
+    container_name: raft1
+    hostname: raft1
+    build: .
+    environment:
+      - ADDR=raft1:50051
+      - RAFT_SERVERS=raft1:50051,raft2:50051,raft3:50051
+  raft2:
+    container_name: raft2
+    hostname: raft2
+    build: .
+    environment:
+      - ADDR=raft2:50051
+      - RAFT_SERVERS=raft1:50051,raft2:50051,raft3:50051
+  raft3:
+    container_name: raft3
+    hostname: raft3
+    build: .
+    environment:
+      - ADDR=raft3:50051
+      - RAFT_SERVERS=raft1:50051,raft2:50051,raft3:50051
