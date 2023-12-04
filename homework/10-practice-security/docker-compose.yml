@@ -1,0 +1,34 @@
+services:
+    auth:
+        build: 
+            context: auth
+        volumes:
+            - ./auth/signature.pem:/tmp/signature.pem
+            - ./auth/signature.pub:/tmp/signature.pub
+        command: ["--private", "/tmp/signature.pem", "--public", "/tmp/signature.pub", "--port", "8090"]
+        ports:
+            - 8090:8090
+
+    kv:
+        build: 
+            context: kv
+        volumes:
+            - ./auth/signature.pub:/tmp/signature.pub
+        command: ["--public", "/tmp/signature.pub", "--port", "8090"]
+        ports:
+            - 8091:8090
+
+    tests:
+        build:
+            context: tests
+        environment:
+            KV_SERVER_URL: "http://kv:8090"
+            AUTH_SERVER_URL: "http://auth:8090"
+            JWT_PRIVATE_KEY_FILE: "/tmp/signature.pem"
+            JWT_PUBLIC_KEY_FILE: "/tmp/signature.pub"
+        volumes:
+            - ./auth/signature.pem:/tmp/signature.pem
+            - ./auth/signature.pub:/tmp/signature.pub
+        depends_on:
+            - auth
+            - kv
