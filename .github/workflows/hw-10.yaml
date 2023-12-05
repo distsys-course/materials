@@ -1,0 +1,38 @@
+name: HW 10
+
+on:
+  push:
+    branches: ["2023"]
+    paths: ["homework/10-practice-security/**"]
+  pull_request:
+    branches: ["2023", "master"]
+    paths: ["homework/10-practice-security/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    if: github.repository != 'osukhoroslov/distsys-course-hse'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: homework/10-practice-security
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build docker images
+        run: docker compose build
+      - name: Run containers and tests
+        run: |
+          docker compose up -d auth kv
+          docker compose run tests
+      - name: Show auth logs
+        if: always()
+        run: docker compose logs --no-log-prefix auth
+      - name: Show kv logs
+        if: always()
+        run: docker compose logs --no-log-prefix kv
+      - name: Stop Docker Compose
+        if: always()
+        run: docker compose down
