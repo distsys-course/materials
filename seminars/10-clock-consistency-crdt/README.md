@@ -362,6 +362,7 @@ CRDT структуры очень интересны и с помощью из�
 - [Time, Clocks, and the Ordering of Events in a Distributed System](https://dl.acm.org/doi/pdf/10.1145/359545.359563) &mdash; статья Лесли Лэмпорта про логические часы.
 - [Timestamps in Message-Passing Systems That Preserve the Partial Ordering](http://cs.engr.uky.edu/~manivann/cs570/Fidge.pdf) &mdash; про векторные часы.
 - [Jepsen Consistency Models](https://jepsen.io/consistency) &mdash; краткое описание моделей согласованности.
+- [CSE Buffalo 26 consistency](https://cse.buffalo.edu/~stevko/courses/cse486/spring13/lectures/26-consistency2.pdf) &mdash; разница Lineriazability и Sequential Consistency.
 - [Living without atomic clocks: Where CockroachDB and Spanner diverge](https://www.cockroachlabs.com/blog/living-without-atomic-clocks/)
 - [CockroachDB's consistency model](https://www.cockroachlabs.com/blog/consistency-model/) &mdash; про линеаризуемость в глобально-распределенной СУБД CockroachDB.
 - Designing Data-Intensive Applications, Martin Kleppman &mdash; хорошая книга, раскрывающая многие концепции распределенных систем.
