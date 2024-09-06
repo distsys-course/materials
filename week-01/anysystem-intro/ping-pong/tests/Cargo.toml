@@ -1,0 +1,12 @@
+[package]
+name = "ping-pong"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anysystem = "0.1.0"
+assertables = "3.2.2"
+clap = { version = "3.1.17", features = ["cargo", "derive"] }
+env_logger = "0.9.0"
+log = "0.4.14"
+sugars = "3.0.0"
