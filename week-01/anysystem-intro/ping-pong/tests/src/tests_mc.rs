@@ -18,7 +18,10 @@ pub fn test_mc_reliable_network(config: &TestConfig) -> TestResult {
 
     let strategy_config = StrategyConfig::default()
         .prune(prunes::sent_messages_limit(4))
-        .goal(goals::got_n_local_messages("client-node", "client", 1))
+        .goal(goals::all_goals(vec![
+            goals::no_events(),
+            goals::got_n_local_messages("client-node", "client", 1),
+        ]))
         .invariant(invariants::all_invariants(vec![
             invariants::received_messages("client-node", "client", messages_expected),
             invariants::state_depth(20),
@@ -44,7 +47,10 @@ pub fn test_mc_unreliable_network(config: &TestConfig) -> TestResult {
     sys.network().set_drop_rate(0.5);
     let strategy_config = StrategyConfig::default()
         .prune(prunes::state_depth(7))
-        .goal(goals::got_n_local_messages("client-node", "client", 1))
+        .goal(goals::all_goals(vec![
+            goals::no_events(),
+            goals::got_n_local_messages("client-node", "client", 1),
+        ]))
         .invariant(invariants::received_messages(
             "client-node",
             "client",
@@ -75,7 +81,10 @@ pub fn test_mc_limited_message_drops(config: &TestConfig) -> TestResult {
             prunes::events_limit(LogEntry::is_mc_message_dropped, num_drops_allowed),
             prunes::events_limit(LogEntry::is_mc_message_sent, 2 + num_drops_allowed),
         ]))
-        .goal(goals::got_n_local_messages("client-node", "client", 1))
+        .goal(goals::all_goals(vec![
+            goals::no_events(),
+            goals::got_n_local_messages("client-node", "client", 1),
+        ]))
         .invariant(invariants::received_messages(
             "client-node",
             "client",
