@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package storage;
+
+option go_package = "hsegrpc/;storagepb";
+
+import "google/protobuf/timestamp.proto";
+
+service Storage {
+  rpc PutValue(PutRequest) returns (PutResponse);
+  rpc GetValue(GetRequest) returns (GetResponse);
+}
+
+message Value {
+  uint64 payload = 1;
+  optional google.protobuf.Timestamp updated_at = 2;
+}
+
+message PutRequest {
+  Value value = 1;
+}
+
+message PutResponse {
+  uint64 value = 1;
+}
+
+message GetRequest {
+}
+
+message GetResponse {
+  Value value = 1;
+}
