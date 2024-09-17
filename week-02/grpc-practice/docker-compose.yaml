@@ -1,0 +1,13 @@
+services:
+  server:
+    build: ./go-server
+    environment:
+      - SERVER_ADDR=0.0.0.0:51000
+    ports:
+      - "51000:51000"
+
+  client1:
+    image: hse-grpc-client
+    environment:
+      - SERVER_ADDR=server:51000
+      - VALUE_TO_PUT=100500
