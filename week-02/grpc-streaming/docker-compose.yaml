@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: server
+    environment:
+      - SERVER_ADDR=0.0.0.0:51000
+    ports:
+      - "51000:51000"
+
+  client1:
+    build:
+      context: client
+    environment:
+      - SERVER_ADDR=server:51000
+    depends_on:
+      - server
