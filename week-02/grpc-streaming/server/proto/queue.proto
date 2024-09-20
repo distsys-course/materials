@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package queue;
+
+import "google/protobuf/timestamp.proto";
+
+service Queue {
+  rpc Push(PushRequest) returns (PushResponse);
+  rpc PushMany(stream PushRequest) returns (PushResponse);
+  rpc Pop(PopRequest) returns (PopResponse);
+  rpc Drain(DrainRequest) returns (stream PopResponse);
+}
+
+message Value {
+  uint64 payload = 1;
+  optional google.protobuf.Timestamp updated_at = 2;
+}
+
+message PushRequest {
+  Value value = 1;
+}
+
+message PushResponse {
+}
+
+message PopRequest {
+}
+
+message PopResponse {
+  optional Value value = 1;
+}
+
+message DrainRequest {
+}
