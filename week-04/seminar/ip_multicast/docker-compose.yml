@@ -1,0 +1,19 @@
+services:
+    sender:
+        build: 
+            context: sender
+        depends_on:
+          - receiver1
+          - receiver2
+          - receiver3
+        ports:
+          - 9999:9999/udp 
+    receiver1:
+        build: 
+            context: receiver
+    receiver2:
+        build: 
+            context: receiver
+    receiver3:
+        build: 
+            context: receiver
