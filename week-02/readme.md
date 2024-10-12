@@ -1,16 +1,16 @@
-# 2. Взаимодействие между процессами, надежная передача и RPC
+## 2. Взаимодействие между процессами, надежная передача и RPC
 
-## Лекция
+### Лекция
 
 - [Презентация](02-communication.pdf)
 - См. также материалы в конце
 
-## Семинар
+### Семинар
 
 - [Практика с gRPC](grpc-practice)
 - [Пример gRPC Streaming](grpc-streaming)
 
-## Другие материалы
+### Другие материалы
 
 - [Туториал по Docker](https://docker-curriculum.com/)
 - [Основы работы с docker compose](https://docs.docker.com/compose/gettingstarted/)
