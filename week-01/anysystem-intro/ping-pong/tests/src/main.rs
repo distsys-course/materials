@@ -1,4 +1,5 @@
 mod common;
+mod solution;
 mod tests;
 mod tests_mc;
 
